@@ -19,7 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.3", "pytest-cov>=5.0"]
-mcp = ["mcp>=1.9"]
+mcp = ["mcp>=2.2,<3"]
 
 [project.scripts]
 artemis-mobile = "artemis_mobile_agent.cli:app"
