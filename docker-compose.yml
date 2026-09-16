@@ -1,0 +1,12 @@
+services:
+  artemis:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      ARTEMIS_FAKE_DEVICE: ${ARTEMIS_FAKE_DEVICE:-1}
+      ARTEMIS_PLANNER_URL: ${ARTEMIS_PLANNER_URL:-}
+      ARTEMIS_PLANNER_TOKEN: ${ARTEMIS_PLANNER_TOKEN:-}
+    volumes:
+      - artemis-data:/data
+volumes:
+  artemis-data:
