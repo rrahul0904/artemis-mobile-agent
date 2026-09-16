@@ -8,7 +8,6 @@ app = typer.Typer(no_args_is_help=True)
 
 @app.command()
 def devices():
-    """List attached Android devices."""
     typer.echo(json.dumps([d.model_dump() for d in Engine().devices()], indent=2))
 
 @app.command()
@@ -16,9 +15,9 @@ def diagnose():
     typer.echo(json.dumps(Engine().diagnose(), indent=2))
 
 @app.command()
-def run(goal: str, profile: Profile = Profile.FLASH, device_serial: str | None = None, max_steps: int = 20):
+def run(goal: str, profile: Profile = Profile.FLASH, device_serial: str | None = None, max_steps: int = 20, verification_level: str = "final", explorer_mode: str = "flash", locked_app_package: str | None = None, app_path: str | None = None, record_video: bool = False):
     e = Engine()
-    r = e.submit(RunRequest(goal=goal, profile=profile, device_serial=device_serial, max_steps=max_steps))
+    r = e.submit(RunRequest(goal=goal, profile=profile, device_serial=device_serial, max_steps=max_steps, verification_level=verification_level, explorer_mode=explorer_mode, locked_app_package=locked_app_package, app_path=app_path, record_video=record_video))
     r = e.wait(r.id, timeout=300)
     typer.echo(json.dumps(e.trace(r.id), indent=2, default=str))
     raise typer.Exit(0 if r.status.value == "succeeded" else 2)

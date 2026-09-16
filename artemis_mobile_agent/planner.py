@@ -1,5 +1,6 @@
 from __future__ import annotations
-import os
+import base64, os
+from pathlib import Path
 from dataclasses import dataclass
 import httpx
 from .models import Action, Observation, Profile
@@ -51,6 +52,7 @@ class RemotePlanner(Planner):
                 "height": observation.height,
                 "elements": [e.model_dump() for e in observation.elements],
                 "screenshot_path": observation.screenshot_path,
+                "screenshot_base64": base64.b64encode(Path(observation.screenshot_path).read_bytes()).decode() if observation.screenshot_path and Path(observation.screenshot_path).exists() else None,
             },
             "history": history[-12:],
         }

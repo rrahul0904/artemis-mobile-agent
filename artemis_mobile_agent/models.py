@@ -79,6 +79,11 @@ class RunRequest(BaseModel):
     device_serial: str | None = None
     max_steps: int = Field(default=20, ge=1, le=100)
     expected_output: str | None = None
+    locked_app_package: str | None = None
+    app_path: str | None = None
+    verification_level: Literal["off", "final", "checkpoints", "strict"] = "final"
+    explorer_mode: Literal["flash", "pro", "ultra"] = "flash"
+    record_video: bool = False
 
 class RunRecord(BaseModel):
     id: str

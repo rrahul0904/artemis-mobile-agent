@@ -11,6 +11,8 @@ The built-in deterministic planner drives evidence-backed visible-text navigatio
 
 - `ARTEMIS_PLANNER_URL`: provider-neutral HTTPS endpoint.
 - `ARTEMIS_PLANNER_TOKEN`: optional bearer token.
+- `ARTEMIS_VERIFIER_URL` / `ARTEMIS_VERIFIER_TOKEN`: optional independent final-check service.
+- `ARTEMIS_API_TOKEN`: protect API and WebSocket access.
 
 The endpoint receives `{goal, profile, observation, history}` and returns `{thought, action}` where `action` follows the API action schema. This keeps model-provider credentials outside the mobile runtime.
 

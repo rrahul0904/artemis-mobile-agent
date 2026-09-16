@@ -7,9 +7,9 @@ from .models import Profile, RunRequest
 def _engine():
     return Engine()
 
-def mobile_run_task(task_desc: str, conversation_id: str | None = None, model: str = "Flash", device_serial: str | None = None, expected_output_desc: str | None = None, verification_level: str | None = None, explorer_mode: str | None = None, locked_app_package: str | None = None, app_path: str | None = None):
+def mobile_run_task(task_desc: str, conversation_id: str | None = None, model: str = "Flash", device_serial: str | None = None, expected_output_desc: str | None = None, verification_level: str | None = None, explorer_mode: str | None = None, locked_app_package: str | None = None, app_path: str | None = None, record_video: bool = False):
     profile = Profile.PRO if model.lower() == "pro" else Profile.FLASH
-    r = _engine().submit(RunRequest(goal=task_desc, profile=profile, device_serial=device_serial, expected_output=expected_output_desc))
+    r = _engine().submit(RunRequest(goal=task_desc, profile=profile, device_serial=device_serial, expected_output=expected_output_desc, verification_level=verification_level or "final", explorer_mode=explorer_mode or "flash", locked_app_package=locked_app_package, app_path=app_path, record_video=record_video))
     return {"trace_id": r.id, "status": r.status.value, "device_serial": r.device_serial, "message": r.message}
 
 def mobile_manage_task(action: str = "status", trace_id: str | None = None):

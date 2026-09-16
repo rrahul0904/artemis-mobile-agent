@@ -8,13 +8,13 @@ An independently structured, Apache-2.0 Android automation/testing runtime recon
 - screenshot + UIAutomator hierarchy capture and indexed UI elements
 - tap, long press, text, swipe, key, launch app, install APK, open URL, wait
 - Flash reactive `observe → decide → act → re-observe → verify` loop
-- Pro profile with target prechecks and recovery behavior
+- Pro profile with target prechecks, checkpoint evidence, independent final verification, and recovery behavior
 - pause/resume/cancel lifecycle and per-device serialization
-- persisted steps/events/evidence and replay API
-- REST API, WebSocket telemetry, browser workspace
-- CLI and MCP-compatible tools (`mobile_run_task`, `mobile_manage_task`, `mobile_get_device_state`, `mobile_inspect_trace`, `mobile_diagnose`)
+- persisted steps/events/evidence, HTML replay, and optional MP4 replay export
+- REST API, WebSocket telemetry, browser workspace, optional bearer-token protection
+- Python SDK, CLI and MCP-compatible tools (`mobile_run_task`, `mobile_manage_task`, `mobile_get_device_state`, `mobile_inspect_trace`, `mobile_diagnose`)
 - optional native MCP transport (`pip install '.[mcp]'`)
-- provider-neutral remote planner bridge for arbitrary model/VLM reasoning
+- provider-neutral remote planner + verifier bridges with screenshot payloads for arbitrary model/VLM reasoning
 - logcat diagnostics, Dockerfile, Compose, fake Android backend, GitHub Actions
 
 ## Certified local acceptance flow
@@ -53,6 +53,11 @@ The built-in deterministic planner handles evidence-backed visible-text navigati
 
 ## Deployment
 
-The Docker image includes `adb` and a health check. A hosted demo can use `ARTEMIS_FAKE_DEVICE=1`. Real-device production instances must run on infrastructure that can reach the Android device/emulator.
+The Docker image includes `adb`, `ffmpeg`, and a health check. A hosted demo can use `ARTEMIS_FAKE_DEVICE=1`. Real-device production instances must run on infrastructure that can reach the Android device/emulator.
 
 See [Deployment](docs/DEPLOYMENT.md) and [Parity status](docs/PARITY.md).
+
+
+## Security and SDK
+
+Set `ARTEMIS_API_TOKEN` to require bearer authentication on API routes and WebSocket connections. Python callers can use `artemis_mobile_agent.sdk.ArtemisClient` for devices, run submission, status, lifecycle control, trace retrieval, and wait/poll workflows.

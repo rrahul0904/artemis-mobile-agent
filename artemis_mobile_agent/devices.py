@@ -114,7 +114,7 @@ class AdbBackend:
         rc, out, err = self._serial(serial, "logcat", "-d", "-t", str(lines))
         return out if rc == 0 else err
 
-_TINY_PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZQmcAAAAASUVORK5CYII=")
+_TINY_PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8//8/AwMDEwMDAwMDAwAkBgMB/DXemwAAAABJRU5ErkJggg==")
 
 class FakeBackend:
     def __init__(self):
