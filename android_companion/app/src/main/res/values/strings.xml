@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Artemis Companion</string>
+    <string name="accessibility_description">Lets Artemis observe and operate this device only after you explicitly enable the service.</string>
+</resources>

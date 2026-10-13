@@ -153,4 +153,10 @@ class FakeBackend:
         return "I/FakeDevice: healthy"
 
 def make_backend() -> DeviceBackend:
-    return FakeBackend() if os.getenv("ARTEMIS_FAKE_DEVICE", "0").lower() in {"1", "true", "yes"} else AdbBackend()
+    if os.getenv("ARTEMIS_FAKE_DEVICE", "0").lower() in {"1", "true", "yes"}:
+        return FakeBackend()
+    companion_url = os.getenv("ARTEMIS_COMPANION_URL")
+    if companion_url:
+        from .companion import CompanionBackend
+        return CompanionBackend(base_url=companion_url, token=os.getenv("ARTEMIS_COMPANION_TOKEN", ""))
+    return AdbBackend()

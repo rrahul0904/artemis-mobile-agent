@@ -16,6 +16,10 @@ class TraceStore:
         p = self.run_dir(run_id) / "artifacts"
         p.mkdir(exist_ok=True)
         return p
+    def approvals_dir(self, run_id: str) -> Path:
+        p = self.run_dir(run_id) / "approvals"
+        p.mkdir(exist_ok=True)
+        return p
     def write_run(self, run: RunRecord) -> None:
         target = self.run_dir(run.id) / "run.json"
         tmp = target.with_suffix(".json.tmp")
@@ -34,6 +38,29 @@ class TraceStore:
         if not p.exists():
             return []
         return [StepRecord.model_validate_json(x) for x in p.read_text().splitlines() if x.strip()]
+    def write_approval(self, run_id: str, approval: dict) -> None:
+        approval_id = approval.get("approval_id")
+        if not approval_id:
+            raise ValueError("approval_id is required")
+        target = self.approvals_dir(run_id) / f"{approval_id}.json"
+        tmp = target.with_suffix(".json.tmp")
+        with self._lock:
+            tmp.write_text(json.dumps(approval, indent=2, sort_keys=True, default=str), encoding="utf-8")
+            tmp.replace(target)
+    def read_approval(self, run_id: str, approval_id: str) -> dict | None:
+        p = self.root / run_id / "approvals" / f"{approval_id}.json"
+        return json.loads(p.read_text()) if p.exists() else None
+    def list_approvals(self, run_id: str) -> list[dict]:
+        p = self.root / run_id / "approvals"
+        if not p.exists():
+            return []
+        items = [json.loads(item.read_text()) for item in p.glob("*.json")]
+        return sorted(items, key=lambda x: float(x.get("issued_at") or 0))
+    def pending_approval(self, run_id: str) -> dict | None:
+        for item in reversed(self.list_approvals(run_id)):
+            if item.get("status") == "pending":
+                return item
+        return None
     def event(self, run_id: str, event_type: str, payload) -> None:
         p = self.run_dir(run_id) / "events.jsonl"
         row = {"ts": time.time(), "type": event_type, "payload": payload}

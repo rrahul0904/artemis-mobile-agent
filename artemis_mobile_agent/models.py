@@ -15,6 +15,15 @@ class RunStatus(str, Enum):
     FAILED = "failed"
     CANCELLED = "cancelled"
 
+class RiskClass(str, Enum):
+    READ_ONLY = "read_only"
+    REVERSIBLE_LOCAL = "reversible_local"
+    OUTWARD_FACING = "outward_facing"
+    FINANCIAL_OR_PURCHASE = "financial_or_purchase"
+    DESTRUCTIVE = "destructive"
+    SECURITY_OR_PERMISSION_CHANGE = "security_or_permission_change"
+    CAPABILITY_ELEVATION = "capability_elevation"
+
 class DeviceInfo(BaseModel):
     serial: str
     state: str = "device"
@@ -41,6 +50,10 @@ class Observation(BaseModel):
     width: int = 1080
     height: int = 2400
     activity: str | None = None
+    # Device-native transports use these to reject writes against stale UI state.
+    # They are optional/defaulted so existing ADB traces remain backwards compatible.
+    sequence: int = 0
+    digest: str | None = None
 
 class Action(BaseModel):
     type: Literal["click", "long_press", "input_text", "swipe", "press_key", "launch_app", "install_apk", "open_link", "wait", "finish"]
@@ -100,3 +113,7 @@ class RunRecord(BaseModel):
 
 class ManageRequest(BaseModel):
     action: Literal["cancel", "pause", "resume"]
+
+class ApprovalDecisionRequest(BaseModel):
+    decision: Literal["approve", "deny", "change"]
+    text: str | None = Field(default=None, max_length=2000)

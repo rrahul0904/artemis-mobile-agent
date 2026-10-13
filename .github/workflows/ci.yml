@@ -15,6 +15,26 @@ jobs:
       - run: pytest --cov=artemis_mobile_agent --cov-report=term-missing
       - run: python -c "from mcp.server import MCPServer; from artemis_mobile_agent.mcp_server import main; print('native MCP import ok')"
       - run: ARTEMIS_FAKE_DEVICE=1 artemis-mobile run "Open Settings, go to Battery and verify battery percentage"
+
+  android-companion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify hosted Android SDK
+        run: |
+          test -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - run: gradle :app:assembleDebug
+        working-directory: android_companion
+
   docker:
     runs-on: ubuntu-latest
     steps:
