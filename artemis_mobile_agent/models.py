@@ -41,6 +41,10 @@ class Observation(BaseModel):
     width: int = 1080
     height: int = 2400
     activity: str | None = None
+    # Device-native transports use these to reject writes against stale UI state.
+    # They are optional/defaulted so existing ADB traces remain backwards compatible.
+    sequence: int = 0
+    digest: str | None = None
 
 class Action(BaseModel):
     type: Literal["click", "long_press", "input_text", "swipe", "press_key", "launch_app", "install_apk", "open_link", "wait", "finish"]
