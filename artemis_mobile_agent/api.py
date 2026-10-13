@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse
 from .engine import Engine
-from .models import ManageRequest, RunRequest
+from .models import ApprovalDecisionRequest, ManageRequest, RunRequest
 
 engine = Engine()
 app = FastAPI(title="Artemis Mobile Agent", version="0.3.0")
@@ -52,6 +52,22 @@ def manage(run_id: str, req: ManageRequest):
     except KeyError as e:
         raise HTTPException(404, "run not found") from e
 
+@app.get("/api/runs/{run_id}/approvals/pending", dependencies=secure)
+def pending_approval(run_id: str):
+    if not engine.store.read_run(run_id):
+        raise HTTPException(404, "run not found")
+    approval = engine.store.pending_approval(run_id)
+    return {"run_id": run_id, "approval": approval}
+
+@app.post("/api/runs/{run_id}/approvals/{approval_id}", dependencies=secure)
+def decide_approval(run_id: str, approval_id: str, req: ApprovalDecisionRequest):
+    try:
+        return engine.resolve_approval(run_id, approval_id, req.decision, req.text)
+    except KeyError as e:
+        raise HTTPException(404, "run or approval not found") from e
+    except ValueError as e:
+        raise HTTPException(409, str(e)) from e
+
 @app.get("/api/runs/{run_id}/trace", dependencies=secure)
 def trace(run_id: str):
     try:
@@ -96,7 +112,8 @@ def replay(run_id: str):
         shot = Path(s["before"]["screenshot_path"]).name if s["before"].get("screenshot_path") else None
         image = f'<img src="/api/runs/{run_id}/artifacts/{html.escape(shot)}" style="max-width:280px;max-height:500px">' if shot else ""
         rows.append(f"<article><h3>Step {s['number']}: {html.escape(s['action']['type'])}</h3>{image}<pre>{html.escape(json.dumps({'thought':s['thought'],'action':s['action'],'result':s['result'],'verification':s.get('verification')}, indent=2, default=str))}</pre></article>")
-    return f"<!doctype html><meta charset='utf-8'><title>Replay {run_id}</title><style>body{{font-family:system-ui;background:#0b1020;color:#e8ecf4;max-width:1000px;margin:auto;padding:24px}}article{{border:1px solid #27324f;border-radius:12px;padding:16px;margin:16px 0}}pre{{white-space:pre-wrap}}</style><h1>Replay</h1><p>{html.escape(t['run']['goal'])}</p>{''.join(rows)}"
+    approvals = html.escape(json.dumps(t.get("approvals", []), indent=2, default=str))
+    return f"<!doctype html><meta charset='utf-8'><title>Replay {run_id}</title><style>body{{font-family:system-ui;background:#0b1020;color:#e8ecf4;max-width:1000px;margin:auto;padding:24px}}article{{border:1px solid #27324f;border-radius:12px;padding:16px;margin:16px 0}}pre{{white-space:pre-wrap}}</style><h1>Replay</h1><p>{html.escape(t['run']['goal'])}</p><h2>Approval receipts</h2><pre>{approvals}</pre>{''.join(rows)}"
 
 @app.websocket("/ws/runs/{run_id}")
 async def run_ws(ws: WebSocket, run_id: str, token: str | None = Query(default=None)):
