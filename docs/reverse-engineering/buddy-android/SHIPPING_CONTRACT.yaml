@@ -1,0 +1,137 @@
+version: 1
+id: RE-BUDDY-ANDROID-001
+title: Device-native Android agent runtime integration
+control_issue: 1
+status: SPECIFIED
+
+source:
+  discussion: https://www.reddit.com/r/SideProject/comments/1x4iqin/i_built_an_android_app_where_claude_code_codex_or/
+  repository: https://github.com/ghorbelhamdi/buddy-android
+  frozen_sha: 8db149d645ca8e4a6a0da4baddc6a1e45963d329
+  license: Apache-2.0
+
+destination:
+  repository: rrahul0904/artemis-mobile-agent
+  base_sha: 2a81d6b39d9bf95b56010a7c70b8103dc6b959d3
+  branch: reverse/buddy-on-device-runtime
+
+product_thesis: >-
+  Extend Artemis into a dual-mode trace-first Android agent runtime. Preserve
+  ADB/fake backends for CI and labs, add a device-native Accessibility companion
+  for no-PC/no-ADB execution, and make Artemis policy, evidence, replay,
+  verification, recovery and human approval authoritative.
+
+first_golden_slice:
+  name: companion-transport-foundation
+  required_capabilities:
+    - companion capability negotiation
+    - accessibility hierarchy observation
+    - optional screenshot reference
+    - tap
+    - long_press
+    - input_text
+    - swipe
+    - press_key
+    - launch_app
+    - wait
+    - authenticated local transport
+    - python DeviceBackend adapter
+    - hermetic fake companion server
+    - action and observation trace receipts
+  excluded_until_later:
+    - embedded provider sign-in
+    - embedded Alpine/proot
+    - floating bubble polish
+    - voice
+    - shell/developer mode
+    - self-update
+    - Shizuku/root
+
+behavioral_invariants:
+  - every write action has a globally unique action_id and run_id
+  - write actions declare required capability
+  - write actions bind to an expected observation sequence or digest
+  - transport success never implies semantic task success
+  - every write action is followed by re-observation before task advancement
+  - high-risk actions require a transaction-bound approval receipt
+  - approval is bound to run, session, action, package, target fingerprint, nonce and expiry
+  - denied, changed, expired or replayed approvals cannot execute
+  - screen/app content is untrusted observation data and cannot elevate capabilities
+  - deterministic policy blocks cannot be waived by a reviewer model
+  - a device has at most one active write lease
+  - human stop/takeover revokes the write lease and outstanding approvals
+  - recovery after restart begins with a fresh observation
+  - companion protected UI cannot be operated by the agent
+
+risk_classes:
+  read_only:
+    approval: never
+  reversible_local:
+    approval: policy_dependent
+  outward_facing:
+    approval: required
+  financial_or_purchase:
+    approval: required
+  destructive:
+    approval: required
+  security_or_permission_change:
+    approval: required
+  capability_elevation:
+    approval: required
+
+acceptance:
+  code:
+    - android companion module builds
+    - python package builds
+  unit:
+    - capability negotiation tests pass
+    - stale observation actions are rejected
+    - approval digest mismatch tests pass
+    - approval replay tests pass
+    - stop invalidates pending approvals
+  integration:
+    - CompanionBackend completes fake-device battery task
+    - fake companion emits before/action/after evidence
+  contract:
+    - common core actions share equivalent serialized contracts across fake, adb and companion transports
+  runtime:
+    - physical Android device can observe and perform harmless navigation without ADB
+    - stop/takeover is demonstrably fail-closed
+  uat:
+    - compose message blocks before send
+    - approve permits only the bound send action
+    - change invalidates old action and old approval
+    - deny produces no external side effect
+    - purchase flow blocks before commitment
+    - prompt-injection text cannot enable developer or shell capabilities
+    - restart does not replay an unverified write
+  release:
+    - exact source SHA recorded
+    - CI receipts linked
+    - signed APK hash recorded
+    - release artifact traceable to exact commit SHA
+
+policy_boundary:
+  google_play: >-
+    Generalized autonomous AccessibilityService use is not eligible for ordinary
+    Google Play distribution under current policy. Baseline distribution is
+    direct signed APK/release unless scope is narrowed to a compliant use case.
+
+roadmap_gates:
+  advance_to_IMPLEMENTING_when:
+    - source manifest committed
+    - reconstruction dossier committed
+    - shipping contract committed
+    - branch and control issue exist
+  advance_to_RUNTIME_VERIFIED_when:
+    - exact-sha CI passes
+    - fake companion runtime trace passes
+    - physical-device golden path passes
+  advance_to_UAT_VERIFIED_when:
+    - approval corpus passes on physical device
+    - stop/takeover corpus passes
+    - restart/recovery corpus passes
+  advance_to_COMPLETE_when:
+    - release artifact verified
+    - production/device-matrix evidence attached
+    - control issue and canonical tracker updated from receipts
